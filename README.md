@@ -1,2 +1,3 @@
-# deductive-reasoning
-Train your own SOTA deductive reasoning model
+# Deductive Reasoning
+
+Train your own State-of-the-Art deductive reasoning model with Reinforcement Learning.
