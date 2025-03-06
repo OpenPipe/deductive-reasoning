@@ -48,7 +48,8 @@ Our training produced impressive performance gains, demonstrating that open-weig
 
 We dramatically improved the cost-accuracy tradeoff compared to proprietary models:
 
-![Cost vs accuracy on log scale](https://example.com/path/to/cost_accuracy_chart.png)
+![image](https://github.com/user-attachments/assets/5889e53e-7d11-4742-900d-5386aadc1983)
+
 
 Notably, we discovered that meaningful performance improvements (10-15%) can be achieved with as few as 16 training examples, making this approach accessible even with limited data.
 
