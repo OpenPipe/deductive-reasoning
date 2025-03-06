@@ -71,6 +71,7 @@ model_name = get_last_iteration_dir(output_dir) or model.base_model
 
 
 async def train() -> None:
+    global expected_tokens, model_name
     # Loop from the current iteration to the target number of iterations
     for i in range(get_iteration(output_dir), num_iterations):
         # Start vLLM server
