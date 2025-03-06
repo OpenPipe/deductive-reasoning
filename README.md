@@ -47,7 +47,7 @@ Follow these steps to run the training recipe:
    uv sync
    ```
 
-3. Reinstall torchtune due to an executable naming conflict with Ray tune 🙈
+3. Reinstall torchtune due to an executable naming conflict with Ray Tune 🙈
 
    ```bash
    uv remove torchtune
@@ -78,7 +78,7 @@ Follow these steps to run the training recipe:
 2. Run the training:
 
    - If using the notebook: Execute all cells in `train.ipynb`
-   - If using the script: Run `python train.py`
+   - If using the script: Run `uv run train.py`
 
 3. Monitor training progress in Weights & Biases.
 
