@@ -30,6 +30,7 @@ Follow these steps to run the training recipe:
   - Qwen 14B requires at least 2 GPUs
   - Qwen 32B requires at least 4 GPUs
 - [uv](https://github.com/astral-sh/uv) package manager
+- [Weights & Biases](https://wandb.ai) account
 
 ### Installation
 
