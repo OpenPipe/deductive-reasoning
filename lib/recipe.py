@@ -42,8 +42,6 @@ from typing import (
 )
 from warnings import warn
 
-from .mlp_head_checkpointer import MLP_HEAD_KEY, MLPHeadCheckpointer
-from .mlp_head import MLPHead
 from .pack import PackedTensors
 from .grpo import GRPO, GRPOResult, shift_tensor
 
@@ -488,7 +486,6 @@ class TuneRecipe(FTRecipeInterface):
             reshard_after_forward=cfg.get("fsdp_reshard_after_forward", True),
             model_state_dict=checkpoint_dict[training.MODEL_KEY],
             reference_model_state_dict=self.reference_model_state_dict,
-            value_head_state_dict=checkpoint_dict.get(MLP_HEAD_KEY, None),
             ac_mode=cfg.get("ac_mode", None),
             ac_option=cfg.get("ac_option", None),
         )
@@ -633,7 +630,6 @@ class TuneRecipe(FTRecipeInterface):
         reshard_after_forward: bool,
         model_state_dict: Dict[str, Any],
         reference_model_state_dict: Optional[Dict[str, Any]] = None,
-        value_head_state_dict: Optional[Dict[str, Any]] = None,
         custom_sharded_layers: Optional[List[str]] = None,
         ac_mode: Optional[str] = None,
         ac_option: Optional[int] = None,
@@ -659,14 +655,6 @@ class TuneRecipe(FTRecipeInterface):
             torch.device("meta") if training.is_distributed() else self._device,
         ):
             model = instantiate_component(cfg_model)
-            if value_head_state_dict:
-                self._value_head = MLPHead(
-                    hidden_size=model.tok_embeddings.embedding_dim,
-                    use_intermediate_layer=True,
-                    dtype=self._dtype,
-                )
-            else:
-                self._value_head = None
 
         if self._compile:
             training.compile_model(model, verbose=self._is_rank_zero)
@@ -704,12 +692,6 @@ class TuneRecipe(FTRecipeInterface):
                 cpu_offload=fsdp_cpu_offload,
                 reshard_after_forward=reshard_after_forward,
             )
-            if self._value_head:
-                self._value_head.materialize_and_shard(
-                    device=self._device,
-                    reshard_after_forward=reshard_after_forward,
-                    fsdp_cpu_offload=fsdp_cpu_offload,
-                )
 
             with training.set_default_dtype(self._dtype), self._device:
                 for m in model.modules():
@@ -755,16 +737,6 @@ class TuneRecipe(FTRecipeInterface):
                 )
 
                 model.load_state_dict = load_state_dict
-
-            if value_head_state_dict and self._value_head:
-                training.load_from_full_model_state_dict(
-                    self._value_head,
-                    value_head_state_dict,
-                    self._device,
-                    self._is_rank_zero,
-                    strict=True,
-                    cpu_offload=fsdp_cpu_offload,
-                )
         else:
             model.load_state_dict(model_state_dict)
 
@@ -772,9 +744,6 @@ class TuneRecipe(FTRecipeInterface):
             training.validate_expected_param_dtype(
                 model.named_parameters(), dtype=self._dtype
             )
-
-            if value_head_state_dict and self._value_head:
-                self._value_head.load_state_dict(value_head_state_dict)
 
         # activation offloading
         self.activations_handling_ctx = training.get_act_offloading_ctx_manager(
@@ -924,19 +893,6 @@ class TuneRecipe(FTRecipeInterface):
             if training.is_distributed()
             else self._model.state_dict()
         )
-        value_head_state_dict = (
-            (
-                training.gather_cpu_state_dict(
-                    self._value_head.state_dict(),
-                    self._is_rank_zero,
-                    device=self._device,
-                )
-                if training.is_distributed()
-                else self._value_head.state_dict()
-            )
-            if self._value_head
-            else None
-        )
 
         if self._is_rank_zero:
             log.info(
@@ -993,12 +949,6 @@ class TuneRecipe(FTRecipeInterface):
                         training.MAX_STEPS_KEY: self.max_steps_per_epoch,
                     }
                 )
-
-            if (
-                isinstance(self._checkpointer, MLPHeadCheckpointer)
-                and value_head_state_dict
-            ):
-                checkpoint_dict[MLP_HEAD_KEY] = value_head_state_dict
 
             self._checkpointer.save_checkpoint(
                 checkpoint_dict,
@@ -1128,15 +1078,7 @@ class TuneRecipe(FTRecipeInterface):
                         mask=mask,
                         input_pos=batch["input_pos"],
                     )
-                del mask, batch["input_pos"]  # type: ignore
-
-                if self._value_head:
-                    mlp_head_preds = self._value_head(hidden_states)
-                    if self._loss_fn.advantage_prediction_coef == 0:
-                        mlp_head_preds = mlp_head_preds.detach()
-                else:
-                    mlp_head_preds = None
-                del hidden_states
+                del mask, batch["input_pos"], hidden_states  # type: ignore
 
                 # Compute loss
                 current_result = self._loss_fn.forward(
@@ -1147,7 +1089,6 @@ class TuneRecipe(FTRecipeInterface):
                     reference_logprobs=reference_logprobs,
                     mask=batch["assistant_mask"],
                     weights=batch["weights"],
-                    deferred=batch["deferred"],
                     bos_id=bos_id,
                 )
                 del logits, batch

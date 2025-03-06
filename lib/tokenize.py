@@ -15,7 +15,6 @@ class TokenizedResult:
     conversation: list
     reward: float
     advantage: float
-    deferred: bool
     chat_template: str
     chat: str
     tokens: list[str]
@@ -32,7 +31,6 @@ class TokenizedResult:
             conversation=self.conversation,
             advantage=self.advantage,
             reward=self.reward,
-            deferred=self.deferred,
             chat_template=self.chat_template,
             chat=self.chat,
             tokens=self.tokens[self.prompt_length :],
@@ -153,7 +151,6 @@ class TaskResultTokenizer:
             conversation=conversation,
             reward=reward,
             advantage=advantage,
-            deferred=False,
             chat_template=chat_template,
             chat=chat,
             tokens=tokens,

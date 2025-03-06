@@ -5,6 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "matplotlib>=3.10.1",
+    "seaborn>=0.13.2",
     "torch>=2.5.1",
     "torchao>=0.8.0",
     "torchtune>=0.5.0",

@@ -1,6 +1,5 @@
 import asyncio
 import glob
-from lib.mlp_head_checkpointer import MLPHeadCheckpointer
 from lib.pack import PackedDataset, PackedTensors, packed_tensors_to_dir
 from lib.recipe import ComponentConfig, recipe_main, TuneRecipeConfig
 from omegaconf import OmegaConf
@@ -180,18 +179,16 @@ def _get_checkpointer_config(
     output_dir: str,
     tune_model_type: str,
     checkpoint_files: list[str] | None = None,
-    mlp_head_checkpointer: bool = False,
     output_subdir: str = "",
 ) -> ComponentConfig[FullModelHFCheckpointer]:
     return ComponentConfig(
-        MLPHeadCheckpointer if mlp_head_checkpointer else FullModelHFCheckpointer,
+        FullModelHFCheckpointer,
         checkpoint_dir=checkpoint_dir,
         checkpoint_files=checkpoint_files
         or [
             os.path.basename(file)
             for ext in ["safetensors", "pt", "ckpt", "bin", "pth"]
             for file in glob.glob(f"{checkpoint_dir}/*.{ext}")
-            if not file.endswith("mlp_head.pt")
         ],
         recipe_checkpoint=None,
         output_dir=output_dir + output_subdir,
@@ -279,71 +276,3 @@ async def _tune_run(
         process.kill()
     if pbar:
         pbar.close()
-
-
-def _save_last_checkpoint_files(base_checkpoint_dir: str, output_dir: str) -> str:
-    """
-    Saves and returns the directory of the latest checkpoint.
-    """
-    # Find the latest epoch number from model checkpoint files
-    epoch = max(
-        (
-            int(result.group(1))
-            for result in (
-                re.search(r"hf_model_\d+_(\d+)\.pt", file)
-                for file in glob.glob(f"{output_dir}/hf_model_*_*.pt")
-            )
-            if result
-        ),
-        default=None,
-    )
-
-    assert (
-        epoch is not None
-    ), f"No model checkpoint files found to save in output directory {output_dir}"
-
-    iteration, iteration_dir = _create_iteration_dir(base_checkpoint_dir, output_dir)
-
-    # Move model checkpoint files to the iteration directory
-    for src in [
-        path
-        for extension in ("pt", "pt.ignore")
-        for path in glob.glob(f"{output_dir}/*_{epoch}.{extension}")
-    ]:
-        dst = f"{iteration_dir}/{os.path.basename(src).replace(f'_{epoch}.pt', '.pt')}"
-        shutil.move(src, dst)
-
-    # Delete all checkpoint files in the output directory
-    for file in [
-        path
-        for extension in ("pt", "pt.ignore")
-        for path in glob.glob(f"{output_dir}/*_*.{extension}")
-    ]:
-        os.remove(file)
-
-    print(f"Saved iteration #{iteration} model files to {iteration_dir}")
-    return iteration_dir
-
-
-def _create_iteration_dir(base_checkpoint_dir: str, output_dir: str) -> tuple[int, str]:
-    next_iteration = get_iteration(output_dir) + 1
-
-    # Create a new directory for this iteration
-    iteration_dir = f"{output_dir}/{next_iteration:04d}"
-    os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(iteration_dir, exist_ok=False)
-
-    # Copy configuration files (non-model files) to the iteration directory
-    for file in os.listdir(base_checkpoint_dir):
-        if not any(
-            file.endswith(suffix)
-            for suffix in (".safetensors", ".pt", ".ckpt", ".bin", ".pth", ".h5")
-        ):
-            src = os.path.join(base_checkpoint_dir, file)
-            dst = os.path.join(iteration_dir, file)
-            if os.path.isdir(src):
-                shutil.copytree(src, dst)
-            else:
-                shutil.copy2(src, dst)
-
-    return next_iteration, iteration_dir

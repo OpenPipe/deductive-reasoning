@@ -79,11 +79,7 @@ class GRPOResult:
 
 class GRPO(torch.nn.Module):
     def __init__(
-        self,
-        clip_epsilon: float = 0.2,
-        entropy_coef: float = 0.0,
-        kl_coef: float = 0.0,
-        tanh: bool = False,
+        self, clip_epsilon: float = 0.2, entropy_coef: float = 0.0, kl_coef: float = 0.0
     ) -> None:
         """
         Initialize the GRPO loss.
@@ -92,13 +88,11 @@ class GRPO(torch.nn.Module):
             clip_epsilon (float): The epsilon value for clipping the policy ratio.
             entropy_coef (float): The coefficient for the entropy bonus.
             kl_coef (float): The coefficient for the KL divergence penalty.
-            tanh (bool): Whether to use an alternative "soft" clipping method.
         """
         super().__init__()
         self.clip_epsilon = clip_epsilon
         self.entropy_coef = entropy_coef
         self.kl_coef = kl_coef
-        self.tanh = tanh
 
     def forward(
         self,
@@ -109,7 +103,6 @@ class GRPO(torch.nn.Module):
         reference_logprobs: torch.Tensor | None,
         mask: torch.Tensor,
         weights: torch.Tensor,
-        deferred: torch.Tensor,
         bos_id: int,
     ) -> GRPOResult:
         """
@@ -138,9 +131,6 @@ class GRPO(torch.nn.Module):
             weights (Tensor):
                 Shape: (batch_size, sequence_length)
                 Weights for each token.
-            deferred (Tensor):
-                Shape: (batch_size, sequence_length)
-                Boolean mask specifying whether the token was deferred from a previous iteration.
             bos_id (int):
                 Index of the beginning of sequence token in the vocabulary.
 
@@ -162,7 +152,6 @@ class GRPO(torch.nn.Module):
                 ),
                 mask.chunk(num_chunks, dim=1),
                 weights.chunk(num_chunks, dim=1),
-                deferred.chunk(num_chunks, dim=1),
             ):
                 result += self._forward_chunk(*chunked_args, bos_id=bos_id)
             return result
@@ -175,7 +164,6 @@ class GRPO(torch.nn.Module):
             reference_logprobs,
             mask,
             weights,
-            deferred,
             bos_id,
         )
 
@@ -188,7 +176,6 @@ class GRPO(torch.nn.Module):
         reference_logprobs: torch.Tensor | None,
         mask: torch.Tensor,
         weights: torch.Tensor,
-        deferred: torch.Tensor,
         bos_id: int,
     ) -> GRPOResult:
         """
@@ -207,9 +194,6 @@ class GRPO(torch.nn.Module):
             reference_logprobs = shift_tensor(reference_logprobs, 0).view(-1)
         mask = shift_tensor(mask, False).view(-1)  # (batch_size * sequence_length,)
         weights = shift_tensor(weights, 0).view(-1)  # (batch_size * sequence_length,)
-        deferred = shift_tensor(deferred, False).view(
-            -1
-        )  # (batch_size * sequence_length,)
         num_tokens = mask.sum()
         dist = torch.distributions.Categorical(logits=logits)
         entropy = dist.entropy()[mask]
@@ -220,27 +204,12 @@ class GRPO(torch.nn.Module):
             reference_logprobs = reference_logprobs[mask]
         advantages = advantages[mask]
         diff = new_logprobs - logprobs
-        deferred = deferred[mask]
-        if deferred.any():
-            # Anywhere deferred is true, logprobs are from a previous iteration
-            # We can scale the standard GRPO advantages by normalized logprob differences
-            # to get a better, token-level estimate of the advantage
-            normalized_diff = diff / (diff[deferred].std() + 1e-6)
-            modified_advantages = advantages * normalized_diff
-            # modified_advantages = (
-            #     modified_advantages.abs().add(1e-6).sqrt() * modified_advantages.sign()
-            # )
-            advantages = torch.where(deferred, modified_advantages, advantages)
-            diff = torch.where(deferred, new_logprobs - new_logprobs.detach(), diff)
-        if self.tanh:
-            policy_loss = -torch.tanh(diff).mul(advantages)
-        else:
-            prob_ratio = torch.exp(diff)
-            policy_loss = -torch.min(
-                prob_ratio * advantages,
-                torch.clip(prob_ratio, 1 - self.clip_epsilon, 1 + self.clip_epsilon)
-                * advantages,
-            )
+        prob_ratio = torch.exp(diff)
+        policy_loss = -torch.min(
+            prob_ratio * advantages,
+            torch.clip(prob_ratio, 1 - self.clip_epsilon, 1 + self.clip_epsilon)
+            * advantages,
+        )
         if reference_logprobs is not None:
             kl_div = torch.nn.functional.kl_div(
                 new_logprobs,
