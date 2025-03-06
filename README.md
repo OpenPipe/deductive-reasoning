@@ -2,11 +2,11 @@
 
 ![image/png](https://cdn-uploads.huggingface.co/production/uploads/674a1d102c0f27a385772cfe/JauBmEQM0FpOdShBMSfst.png)
 
-Train your own state-of-the-art deductive reasoning model with reinforcement learning.
+Train your own frontier-level deductive reasoning model with reinforcement learning.
 
 ## Overview
 
-This repository contains the training recipe for creating state-of-the-art deductive reasoning models using Reinforcement Learning. Our research demonstrates how smaller, open-weight language models can be trained to perform complex logical deduction tasks at frontier-level performance, matching or exceeding proprietary models at a fraction of the cost.
+This repository contains the training recipe for creating frontier-level deductive reasoning models using reinforcement learning. Our research demonstrates how smaller, open-weight language models can be trained to perform complex logical deduction tasks at frontier-level performance, matching or exceeding proprietary models at a fraction of the cost.
 
 We used the Temporal Clue puzzle dataset to train Qwen 14B and 32B models, improving their deductive reasoning capabilities significantly through Group Relative Policy Optimization (GRPO). Our trained models approach the performance of leading proprietary models like Claude 3.7 Sonnet while maintaining cost efficiency.
 
@@ -26,7 +26,6 @@ Follow these steps to run the training recipe:
 
 ### Prerequisites
 
-- Python 3.12 or higher
 - NVIDIA GPUs with sufficient VRAM for your chosen model:
   - Qwen 14B requires at least 2 GPUs
   - Qwen 32B requires at least 4 GPUs
@@ -75,7 +74,7 @@ Follow these steps to run the training recipe:
 
 3. Monitor training progress in Weights & Biases.
 
-The training will automatically save checkpoints after each iteration, allowing you to resume training if interrupted.
+The training process will save the latest and/or best checkpoints in your output directory, allowing you to resume training if interrupted.
 
 ## Methodology
 
