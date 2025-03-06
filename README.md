@@ -26,7 +26,7 @@ Follow these steps to run the training recipe:
 
 ### Prerequisites
 
-- NVIDIA GPUs with sufficient VRAM for your chosen model:
+- Sufficient NVIDIA GPUs for your chosen model:
   - Qwen 14B requires at least 2 GPUs
   - Qwen 32B requires at least 4 GPUs
 - [uv](https://github.com/astral-sh/uv) package manager
