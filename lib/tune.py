@@ -26,26 +26,8 @@ def clear_iteration_dirs(output_dir: str, excluding: list[int]) -> None:
             and int(dir) not in excluding
         ):
             iteration_dir = os.path.join(output_dir, dir)
-            chat_logs_dir = os.path.join(iteration_dir, "chat-completion-logs")
-
-            if os.path.isdir(chat_logs_dir):
-                # Save the chat-completion-logs directory
-                temp_dir = os.path.join(output_dir, f"temp-{dir}-logs")
-                shutil.move(chat_logs_dir, temp_dir)
-
-                # Delete the iteration directory
-                shutil.rmtree(iteration_dir)
-
-                # Recreate the iteration directory and move logs back
-                os.makedirs(iteration_dir)
-                shutil.move(temp_dir, chat_logs_dir)
-                print(
-                    f"Cleared iteration directory {iteration_dir} except chat-completion-logs"
-                )
-            else:
-                # No chat logs, delete the entire directory
-                shutil.rmtree(iteration_dir)
-                print(f"Deleted iteration directory {iteration_dir}")
+            shutil.rmtree(iteration_dir)
+            print(f"Deleted iteration directory {iteration_dir}")
 
 
 def get_iteration(output_dir: str) -> int:

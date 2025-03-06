@@ -10,33 +10,17 @@ from torchtune.models.qwen2_5 import (
 )
 from torchtune.models.llama3_1 import llama3_1_8b, llama3_1_70b
 from torchtune.modules import TransformerDecoder
-from typing import Any, Callable, Literal
-
-
-Optimizer = Literal[
-    "torch.optim.AdamW",
-    "torchao.prototype.low_bit_optim.AdamW8bit",
-    "bitsandbytes.optim.PagedAdamW8bit",
-]
+from typing import Callable
 
 
 @dataclass
 class Model:
-    """Configuration for language models used in tuning and inference."""
+    """Basic language model configuration"""
 
-    # Model identity
     base_model: str
     tune_model_type: str
     tune_model: Callable[[], TransformerDecoder]
-
-    # Tuning parameters
-    tune_optimizer: Optimizer
-    tune_max_batch_tokens: int
-    tune_fsdp_cpu_offload: bool = False
-    tune_num_output_chunks: int = 8
-
-    # Inference parameters
-    vllm_named_arguments: dict[str, Any] = field(default_factory=dict)
+    tune_num_output_chunks: int
 
 
 def distilled_qwen_7b() -> Model:
@@ -46,10 +30,7 @@ def distilled_qwen_7b() -> Model:
         base_model="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
         tune_model_type="QWEN2",
         tune_model=qwen2_5_7b_base,
-        tune_optimizer="torch.optim.AdamW",
-        tune_max_batch_tokens=32768,
-        tune_fsdp_cpu_offload=True,
-        vllm_named_arguments={},
+        tune_num_output_chunks=8,
     )
 
 
@@ -60,10 +41,7 @@ def theta_8b() -> Model:
         base_model="NousResearch/Hermes-2-Theta-Llama-3-8B",
         tune_model_type="LLAMA3",
         tune_model=llama3_1_8b,
-        tune_optimizer="torch.optim.AdamW",
-        tune_max_batch_tokens=32768,
-        tune_fsdp_cpu_offload=True,
-        vllm_named_arguments={},
+        tune_num_output_chunks=8,
     )
 
 
@@ -74,11 +52,7 @@ def qwen_14b() -> Model:
         base_model="Qwen/Qwen2.5-14B-Instruct",
         tune_model_type="QWEN2",
         tune_model=qwen2_5_14b_instruct,
-        tune_optimizer="torch.optim.AdamW",
-        tune_max_batch_tokens=32768,
-        tune_fsdp_cpu_offload=True,
         tune_num_output_chunks=2,
-        vllm_named_arguments={},
     )
 
 
@@ -89,11 +63,7 @@ def distilled_qwen_14b() -> Model:
         base_model="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
         tune_model_type="QWEN2",
         tune_model=qwen2_5_14b_base,
-        tune_optimizer="torch.optim.AdamW",
-        tune_max_batch_tokens=32768,
-        tune_fsdp_cpu_offload=True,
         tune_num_output_chunks=2,
-        vllm_named_arguments={},
     )
 
 
@@ -104,11 +74,7 @@ def qwen_32b() -> Model:
         base_model="Qwen/Qwen2.5-32B-Instruct",
         tune_model_type="QWEN2",
         tune_model=qwen2_5_32b_instruct,
-        tune_optimizer="torch.optim.AdamW",
-        tune_max_batch_tokens=32768,
-        tune_fsdp_cpu_offload=True,
         tune_num_output_chunks=2,
-        vllm_named_arguments={},
     )
 
 
@@ -119,11 +85,7 @@ def distilled_qwen_32b() -> Model:
         base_model="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
         tune_model_type="QWEN2",
         tune_model=qwen2_5_32b_base,
-        tune_optimizer="torch.optim.AdamW",
-        tune_max_batch_tokens=32768,
-        tune_fsdp_cpu_offload=True,
         tune_num_output_chunks=2,
-        vllm_named_arguments={},
     )
 
 
@@ -134,11 +96,7 @@ def llama_70b() -> Model:
         base_model="unsloth/Llama-3.3-70B-Instruct",
         tune_model_type="LLAMA3",
         tune_model=llama3_1_70b,
-        tune_optimizer="torch.optim.AdamW",
-        tune_max_batch_tokens=32768,
-        tune_fsdp_cpu_offload=True,
         tune_num_output_chunks=2,
-        vllm_named_arguments={},
     )
 
 
@@ -149,10 +107,7 @@ def distilled_llama_70b() -> Model:
         base_model="deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
         tune_model_type="LLAMA3",
         tune_model=llama3_1_70b,
-        tune_optimizer="torch.optim.AdamW",
-        tune_max_batch_tokens=32768,
-        tune_fsdp_cpu_offload=True,
-        vllm_named_arguments={},
+        tune_num_output_chunks=8,
     )
 
 
@@ -163,9 +118,5 @@ def qwen_72b() -> Model:
         base_model="Qwen/Qwen2.5-72B-Instruct",
         tune_model_type="QWEN2",
         tune_model=qwen2_5_72b_instruct,
-        tune_optimizer="torch.optim.AdamW",
-        tune_max_batch_tokens=32768,
-        tune_fsdp_cpu_offload=True,
         tune_num_output_chunks=2,
-        vllm_named_arguments={},
     )

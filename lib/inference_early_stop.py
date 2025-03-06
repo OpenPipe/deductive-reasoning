@@ -1,32 +1,21 @@
 from dataclasses import dataclass, field
 import math
-from openai.types.chat.chat_completion import ChatCompletion, Choice
+from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
-
-ewm_logprobs: dict[str, float] = {}
-alpha = 0.992
-
-
-def on_chunk(chunk: ChatCompletionChunk, completion: ChatCompletion) -> None:
-    if not chunk.choices or not chunk.choices[0].logprobs:
-        return
-    assert chunk.choices[0].logprobs.content is not None
-    for token_logprob in chunk.choices[0].logprobs.content:
-        ewm_logprob = (
-            alpha * ewm_logprobs.get(completion.id, 0)
-            + (1 - alpha) * token_logprob.logprob
-        )
-        if ewm_logprob < -3:
-            print(
-                f"Early stopping - ewm_logprob: {ewm_logprob} completion_tokens: {len(completion.choices[0].logprobs.content)}"  # type: ignore
-            )
-            print(completion.choices[0].message.content)
-            raise StopIteration()
-        ewm_logprobs[completion.id] = ewm_logprob
 
 
 @dataclass
 class InferenceEarlyStop:
+    """
+    Utility for stopping inference early if token log probabilities are too low.
+
+    Args:
+        alpha: The smoothing factor for the exponential weighted moving average.
+        threshold: The log probability threshold to stop inference below.
+        log_early_stops: Whether to log early stops.
+        log_last_n_characters: The number of characters to log from the end of the stopped completion.
+    """
+
     alpha: float = 0.992
     threshold: float = -3
     log_early_stops: bool = False
