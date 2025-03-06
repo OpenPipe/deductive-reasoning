@@ -124,6 +124,7 @@ async def train() -> None:
                     max_completion_tokens=8192,
                 ),
                 pbar_desc="val",
+                pbar_position=0,
                 semaphore=semaphore,
             ),
             get_task_results(
@@ -140,6 +141,7 @@ async def train() -> None:
                     max_completion_tokens=8192,
                 ),
                 pbar_desc="train",
+                pbar_position=1,
                 semaphore=semaphore,
                 transform=TaskResultTokenizer(tokenizer),
             ),

@@ -171,6 +171,7 @@ async def get_task_results(
     on_chunk: Callable[[ChatCompletionChunk, ChatCompletion], None] | None = None,
     params: ChatCompletionParams | None = None,
     pbar_desc: str | None = None,
+    pbar_position: int | None = None,
     prices: tuple[float, float] | None = None,
     semaphore: asyncio.Semaphore | None = None,
     transform: Callable[[TaskResult], T | Awaitable[T]] = lambda x: x,
@@ -191,6 +192,7 @@ async def get_task_results(
         on_chunk (Callable[[ChatCompletionChunk, ChatCompletion], None] | None): Optional callback function for processing completion chunks
         params (ChatCompletionParams | None): Additional parameters to pass to the chat completion API
         pbar_desc (str | None): Description to display on the progress bar
+        pbar_position (int | None): Position of the progress bar
         prices (tuple[float, float] | None): Tuple of (input_price, output_price) per million tokens, for cost tracking
         semaphore (asyncio.Semaphore | None): Optional semaphore for limiting concurrent API calls
         transform (Callable[[TaskResult], T | Awaitable[T]]): Function to transform TaskResult objects before returning
@@ -202,7 +204,7 @@ async def get_task_results(
     tracks metrics → transforms results
     """
     num_completions = len(tasks) * n
-    pbar = tqdm.tqdm(total=num_completions, desc=pbar_desc)
+    pbar = tqdm.tqdm(total=num_completions, desc=pbar_desc, position=pbar_position)
     stats = TaskResultStats(pbar=pbar, prices=prices)
     results = TaskResults(
         await asyncio.gather(
