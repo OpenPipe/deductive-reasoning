@@ -3,7 +3,7 @@ from itertools import cycle, islice
 from lib import models
 from lib.grpo import GRPO
 from lib.inference_early_stop import InferenceEarlyStop
-from lib.pack import packed_tensors_from_tokenized_results, plot_packed_tensors
+from lib.pack import packed_tensors_from_tokenized_results
 from lib.recipe import ComponentConfig, TuneRecipeConfig
 from lib.tasks import ChatCompletionParams, get_task_results
 from lib.temporal_clue import get_temporal_clue_tasks
@@ -64,7 +64,6 @@ expected_tokens = 1000  # Initial expected completion tokens per task sample
 inference_early_stop = InferenceEarlyStop(alpha=0.992, threshold=-3.0)
 
 # Logging params
-plot_tensors = True
 verbosity: Verbosity = 2
 
 # Start from the latest iteration if it exists, otherwise start from the base model
@@ -201,9 +200,7 @@ async def train() -> None:
             seq_len=seq_len,
             pad_token_id=tokenizer.pad_token_id,  # type: ignore
         )
-        if plot_tensors:
-            plot_packed_tensors(packed_tensors)
-        elif verbosity > 0:
+        if verbosity > 0:
             print(f"Packed tensors into {packed_tensors["tokens"].size()} shape")
 
         # Tune the model
