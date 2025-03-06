@@ -1,10 +1,5 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree.
-
-# https://github.com/bradhilton/q4-2024-atreides/blob/main/experiments/lib/rl/recipe.py
+# This is probably most similar to the recipe found in
+# https://github.com/pytorch/torchtune/blob/main/recipes/full_finetune_distributed.py
 
 from functools import partial
 import os
@@ -21,7 +16,6 @@ from torchtune.recipe_interfaces import FTRecipeInterface
 from torchtune.training import DummyProfiler, PROFILER_KEY
 from torchtune.training.activations import apply_selective_activation_checkpointing
 from torchtune.training.checkpointing import Checkpointer
-from torchtune.training.lr_schedulers import get_lr
 from torchtune.training.metric_logging import MetricLoggerInterface
 from tqdm import tqdm
 from typing import (
