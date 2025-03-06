@@ -39,17 +39,72 @@ We used the torchtune library for efficient training and vLLM for inference, wit
 - Samples per Task per Iteration: 50
 - Learning Rate: 6e-6
 
+## Getting Started
+
+Follow these steps to run the training recipe:
+
+### Prerequisites
+
+- Python 3.12 or higher
+- NVIDIA GPUs with sufficient VRAM for your chosen model:
+  - Qwen 14B requires at least 2 GPUs
+  - Qwen 32B requires at least 4 GPUs
+- [uv](https://github.com/astral-sh/uv) package manager
+
+### Installation
+
+1. Clone this repository:
+
+   ```bash
+   git clone https://github.com/bradhilton/deductive-reasoning.git
+   cd deductive-reasoning
+   ```
+
+2. Install dependencies using uv:
+
+   ```bash
+   uv sync
+   ```
+
+3. (Optional) Configure environment variables:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit the `.env` file to add your Weights & Biases API key and project name:
+
+   ```
+   WANDB_API_KEY=your_wandb_api_key_here
+   WANDB_PROJECT=your_project_name
+   ```
+
+### Running the Training
+
+1. Open the `train.ipynb` notebook or `train.py` script and configure the training parameters:
+
+   - Set a unique `run_name` for your experiment
+   - Choose the model (e.g., `models.qwen_14b()` or `models.qwen_32b()`)
+   - Adjust other parameters as needed (learning rate, number of iterations, etc.)
+
+2. Run the training:
+
+   - If using the notebook: Execute all cells in `train.ipynb`
+   - If using the script: Run `python train.py`
+
+3. Monitor training progress in Weights & Biases.
+
+The training will automatically save checkpoints after each iteration, allowing you to resume training if interrupted.
+
 ## Results
 
 Our training produced impressive performance gains, demonstrating that open-weight models can achieve frontier-level reasoning capabilities.
 
 ![image](https://github.com/user-attachments/assets/c405846e-3f19-4b0e-a4ac-02f16c015c54)
 
-
 We dramatically improved the cost-accuracy tradeoff compared to proprietary models:
 
 ![image](https://github.com/user-attachments/assets/5889e53e-7d11-4742-900d-5386aadc1983)
-
 
 Notably, we discovered that meaningful performance improvements (10-15%) can be achieved with as few as 16 training examples, making this approach accessible even with limited data.
 
