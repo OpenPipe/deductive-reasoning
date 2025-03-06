@@ -20,4 +20,5 @@ dependencies = [
 dev-dependencies = [
     "ipykernel>=6.29.5",
     "ipywidgets>=8.1.5",
+    "nbconvert>=7.16.6",
 ]
