@@ -47,7 +47,14 @@ Follow these steps to run the training recipe:
    uv sync
    ```
 
-3. (Optional) Configure environment variables:
+3. Reinstall torchtune due to an executable naming conflict with Ray tune 🙈
+
+   ```bash
+   uv remove torchtune
+   uv add torchtune
+   ```
+
+4. (Optional) Configure environment variables:
 
    ```bash
    cp .env.example .env
