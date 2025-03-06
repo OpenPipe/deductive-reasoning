@@ -18,7 +18,7 @@ We used the Temporal Clue puzzle dataset to train Qwen 14B and 32B models, impro
 - **Model Weights**:
   - [Deductive Reasoning Qwen 14B](https://huggingface.co/OpenPipe/Deductive-Reasoning-Qwen-14B)
   - [Deductive Reasoning Qwen 32B](https://huggingface.co/OpenPipe/Deductive-Reasoning-Qwen-32B)
-- **Blog Post**: [Link to blog post will be added here]
+- **Blog Post**: [Using GRPO to Beat o1, o3-mini and R1 at "Temporal Clue"](https://openpipe.ai/blog/using-grpo-to-beat-o1-o3-mini-and-r1-on-temporal-clue)
 
 ## Getting Started
 
