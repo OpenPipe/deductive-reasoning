@@ -20,25 +20,6 @@ We used the Temporal Clue puzzle dataset to train Qwen 14B and 32B models, impro
   - [Deductive Reasoning Qwen 32B](https://huggingface.co/OpenPipe/Deductive-Reasoning-Qwen-32B)
 - **Blog Post**: [Link to blog post will be added here]
 
-## Methodology
-
-Our training approach used reinforcement learning to incrementally improve models' deductive reasoning capabilities:
-
-1. **Environment**: Temporal Clue puzzles (inspired by the board game Clue/Cluedo) with verifiable solutions
-2. **Algorithm**: Group Relative Policy Optimization (GRPO) without KL divergence penalty
-3. **Training Loop**:
-   - Generate model responses to puzzle tasks
-   - Grade responses and estimate advantages for each group of completions
-   - Fine-tune the model using clipped policy gradients
-   - Repeat with new puzzles until peak performance
-
-We used the torchtune library for efficient training and vLLM for inference, with the following key parameters:
-
-- Models: Qwen 2.5 Instruct 14B & 32B
-- Tasks per Iteration: 32
-- Samples per Task per Iteration: 50
-- Learning Rate: 6e-6
-
 ## Getting Started
 
 Follow these steps to run the training recipe:
@@ -95,6 +76,25 @@ Follow these steps to run the training recipe:
 3. Monitor training progress in Weights & Biases.
 
 The training will automatically save checkpoints after each iteration, allowing you to resume training if interrupted.
+
+## Methodology
+
+Our training approach used reinforcement learning to incrementally improve models' deductive reasoning capabilities:
+
+1. **Environment**: Temporal Clue puzzles (inspired by the board game Clue/Cluedo) with verifiable solutions
+2. **Algorithm**: Group Relative Policy Optimization (GRPO) without KL divergence penalty
+3. **Training Loop**:
+   - Generate model responses to puzzle tasks
+   - Grade responses and estimate advantages for each group of completions
+   - Fine-tune the model using clipped policy gradients
+   - Repeat with new puzzles until peak performance
+
+We used the torchtune library for efficient training and vLLM for inference, with the following key parameters:
+
+- Models: Qwen 2.5 Instruct 14B & 32B
+- Tasks per Iteration: 32
+- Samples per Task per Iteration: 50
+- Learning Rate: 6e-6
 
 ## Results
 
