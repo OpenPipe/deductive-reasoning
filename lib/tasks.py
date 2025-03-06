@@ -10,7 +10,7 @@ from openai.types.completion_usage import CompletionUsage
 import random
 from typing import Awaitable, Callable, TypeVar
 
-from .chat_completions import get_chat_completion, TokenScheduler
+from .chat_completions import get_chat_completion
 from .types import ChatCompletionParams
 from .tqdm import tqdm
 
@@ -162,7 +162,6 @@ async def get_task_results(
     tasks: list[Task],
     client: AsyncOpenAI,
     model: str,
-    cache: bool = True,
     clear_pbar: bool = False,
     print_pbar: bool = True,
     log_dir: str | None = None,
@@ -174,7 +173,6 @@ async def get_task_results(
     pbar_desc: str | None = None,
     prices: tuple[float, float] | None = None,
     semaphore: asyncio.Semaphore | None = None,
-    token_scheduler: TokenScheduler | None = None,
     transform: Callable[[TaskResult], T | Awaitable[T]] = lambda x: x,
 ) -> TaskResults[T]:
     """
@@ -184,7 +182,6 @@ async def get_task_results(
         tasks (list[Task]): List of Task objects, each containing messages to send to the LLM and a grader function
         client (AsyncOpenAI): Any valid AsyncOpenAI client that supports creating chat completions (may be pointed at API providers other than OpenAI or a local inference engine like vLLM)
         model (str): Name of the chat completion model to use
-        cache (bool): Whether to cache completion results for later reuse
         clear_pbar (bool): Whether to clear the progress bar after completion
         print_pbar (bool): Whether to print the progress bar summary after completion
         log_dir (str | None): Directory to save completion logs to. If None, will use the default chat completion log directory
@@ -196,7 +193,6 @@ async def get_task_results(
         pbar_desc (str | None): Description to display on the progress bar
         prices (tuple[float, float] | None): Tuple of (input_price, output_price) per million tokens, for cost tracking
         semaphore (asyncio.Semaphore | None): Optional semaphore for limiting concurrent API calls
-        token_scheduler (TokenScheduler | None): Optional token scheduler for rate limiting
         transform (Callable[[TaskResult], T | Awaitable[T]]): Function to transform TaskResult objects before returning
 
     Returns:
@@ -217,13 +213,11 @@ async def get_task_results(
                     model=model,
                     log_results=log_results,
                     n=n,
-                    cache=cache,
                     log_dir=log_dir,
                     on_chunk=_create_on_chunk_callback(
                         log_token_logprobs, on_chunk, stats
                     ),
                     semaphore=semaphore,
-                    token_scheduler=token_scheduler,
                     params=params,
                     stats=stats,
                     transform=transform,
@@ -279,11 +273,9 @@ async def _get_task_result(
     model: str,
     log_results: bool,
     n: int,
-    cache: bool,
     log_dir: str | None,
     on_chunk: Callable[[ChatCompletionChunk, ChatCompletion], None] | None,
     semaphore: asyncio.Semaphore | None,
-    token_scheduler: TokenScheduler | None,
     params: ChatCompletionParams | None,
     stats: TaskResultStats,
     transform: Callable[[TaskResult], T | Awaitable[T]],
@@ -313,12 +305,10 @@ async def _get_task_result(
     for chat_completion_future in asyncio.as_completed(
         get_chat_completion(
             client,
-            cache=cache,
             log_dir=log_dir,
             log_results=log_results and i == 0,
             on_chunk=on_chunk,
             semaphore=semaphore,
-            token_scheduler=token_scheduler,
             messages=task.messages,
             model=model,
             **_params,  # type: ignore
