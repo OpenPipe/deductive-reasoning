@@ -43,7 +43,8 @@ We used the torchtune library for efficient training and vLLM for inference, wit
 
 Our training produced impressive performance gains, demonstrating that open-weight models can achieve frontier-level reasoning capabilities.
 
-![Performance improvement over training iterations](https://example.com/path/to/performance_chart.png)
+![image](https://github.com/user-attachments/assets/c405846e-3f19-4b0e-a4ac-02f16c015c54)
+
 
 We dramatically improved the cost-accuracy tradeoff compared to proprietary models:
 
