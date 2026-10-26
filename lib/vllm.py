@@ -126,7 +126,7 @@ async def start_vllm(
                 raise TimeoutError("vLLM server did not start in time")
             continue
     if logging:
-        print(f"vLLM server started succesfully. Logs can be found at {log_file}")
+        print(f"vLLM server started successfully. Logs can be found at {log_file}")
         logging = False
     if max_concurrent_tokens is None:
         process.terminate()
